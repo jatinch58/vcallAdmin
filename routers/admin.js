@@ -6,5 +6,5 @@ const admin = require("../controllers/admin");
 router.post("/admin/signup", admin.signup);
 router.post("/admin/login", admin.login);
 router.get("/admin/users", verifyToken, isAdmin, admin.getUsers);
-
+router.get("/admin/hostsRequest", verifyToken, isAdmin, admin.getHostRequests);
 module.exports = router;

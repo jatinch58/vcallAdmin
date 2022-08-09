@@ -3,6 +3,7 @@ const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const admindb = require("../models/admin");
 const userdb = require("../models/userProfile");
+const hostdb = require("../models/hostForm");
 //============================================ sign up ================================================//
 exports.signup = async (req, res) => {
   try {
@@ -69,6 +70,15 @@ exports.getUsers = async (req, res) => {
     console.log(req.user);
     const users = await userdb.find();
     return res.status(200).send({ result: users });
+  } catch (e) {
+    return res.status(500).send({ message: e.name });
+  }
+};
+//======================================== get host requests ==============================================//
+exports.getHostRequests = async (req, res) => {
+  try {
+    const hosts = await hostdb.find({});
+    return res.status(200).send({ result: hosts });
   } catch (e) {
     return res.status(500).send({ message: e.name });
   }
