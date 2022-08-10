@@ -67,7 +67,6 @@ exports.login = async (req, res) => {
 //======================================= get all registered users ========================================//
 exports.getUsers = async (req, res) => {
   try {
-    console.log(req.user);
     const users = await userdb.find();
     return res.status(200).send({ result: users });
   } catch (e) {
@@ -81,5 +80,84 @@ exports.getHostRequests = async (req, res) => {
     return res.status(200).send({ result: hosts });
   } catch (e) {
     return res.status(500).send({ message: e.name });
+  }
+};
+//================================== get pending host requests ==============================================//
+exports.getPendingHostRequests = async (req, res) => {
+  try {
+    const hosts = await hostdb.find({ requestStatus: "pending" });
+    return res.status(200).send({ result: hosts });
+  } catch (e) {
+    return res.status(500).send({ message: e.name });
+  }
+};
+//================================== get accepted host requests ==============================================//
+exports.getAcceptedHostRequests = async (req, res) => {
+  try {
+    const hosts = await hostdb.find({ requestStatus: "accepted" });
+    return res.status(200).send({ result: hosts });
+  } catch (e) {
+    return res.status(500).send({ message: e.name });
+  }
+};
+//================================== get rejected host requests ==============================================//
+exports.getRejectedHostRequests = async (req, res) => {
+  try {
+    const hosts = await hostdb.find({ requestStatus: "rejected" });
+    return res.status(200).send({ result: hosts });
+  } catch (e) {
+    return res.status(500).send({ message: e.name });
+  }
+};
+//======================================= accept host requests ============================================//
+exports.acceptHostRequest = async (req, res) => {
+  try {
+    const { body } = req;
+    const hasRequestId = Joi.object()
+      .keys({
+        requestId: Joi.string().required(),
+      })
+      .required();
+    const validator = hasRequestId.validate(body);
+    if (validator.error) {
+      return res
+        .status(400)
+        .send({ message: validator.error.details[0].message });
+    }
+    const result = await hostdb.findByIdAndUpdate(req.body.requestId, {
+      requestStatus: "accepted",
+    });
+    if (!result) {
+      return res.status(500).send({ message: "Something bad happened" });
+    }
+    return res.status(200).send({ message: "Accepted Successfully" });
+  } catch (e) {
+    res.status(500).send({ message: e.name });
+  }
+};
+//======================================= reject host requests ============================================//
+exports.rejectHostRequest = async (req, res) => {
+  try {
+    const { body } = req;
+    const hasRequestId = Joi.object()
+      .keys({
+        requestId: Joi.string().required(),
+      })
+      .required();
+    const validator = hasRequestId.validate(body);
+    if (validator.error) {
+      return res
+        .status(400)
+        .send({ message: validator.error.details[0].message });
+    }
+    const result = await hostdb.findByIdAndUpdate(req.body.requestId, {
+      requestStatus: "rejected",
+    });
+    if (!result) {
+      return res.status(500).send({ message: "Something bad happened" });
+    }
+    return res.status(200).send({ message: "Rejected Successfully" });
+  } catch (e) {
+    res.status(500).send({ message: e.name });
   }
 };
