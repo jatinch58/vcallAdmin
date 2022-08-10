@@ -3,7 +3,8 @@ const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const admindb = require("../models/admin");
 const userdb = require("../models/userProfile");
-const hostdb = require("../models/hostForm");
+const hostFormdb = require("../models/hostForm");
+const hostdb = require("../models/host");
 //============================================ sign up ================================================//
 exports.signup = async (req, res) => {
   try {
@@ -76,7 +77,7 @@ exports.getUsers = async (req, res) => {
 //======================================== get host requests ==============================================//
 exports.getHostRequests = async (req, res) => {
   try {
-    const hosts = await hostdb.find({});
+    const hosts = await hostFormdb.find({});
     return res.status(200).send({ result: hosts });
   } catch (e) {
     return res.status(500).send({ message: e.name });
@@ -85,7 +86,7 @@ exports.getHostRequests = async (req, res) => {
 //================================== get pending host requests ==============================================//
 exports.getPendingHostRequests = async (req, res) => {
   try {
-    const hosts = await hostdb.find({ requestStatus: "pending" });
+    const hosts = await hostFormdb.find({ requestStatus: "pending" });
     return res.status(200).send({ result: hosts });
   } catch (e) {
     return res.status(500).send({ message: e.name });
@@ -94,7 +95,7 @@ exports.getPendingHostRequests = async (req, res) => {
 //================================== get accepted host requests ==============================================//
 exports.getAcceptedHostRequests = async (req, res) => {
   try {
-    const hosts = await hostdb.find({ requestStatus: "accepted" });
+    const hosts = await hostFormdb.find({ requestStatus: "accepted" });
     return res.status(200).send({ result: hosts });
   } catch (e) {
     return res.status(500).send({ message: e.name });
@@ -103,7 +104,7 @@ exports.getAcceptedHostRequests = async (req, res) => {
 //================================== get rejected host requests ==============================================//
 exports.getRejectedHostRequests = async (req, res) => {
   try {
-    const hosts = await hostdb.find({ requestStatus: "rejected" });
+    const hosts = await hostFormdb.find({ requestStatus: "rejected" });
     return res.status(200).send({ result: hosts });
   } catch (e) {
     return res.status(500).send({ message: e.name });
@@ -124,15 +125,31 @@ exports.acceptHostRequest = async (req, res) => {
         .status(400)
         .send({ message: validator.error.details[0].message });
     }
-    const result = await hostdb.findByIdAndUpdate(req.body.requestId, {
+    const result = await hostFormdb.findByIdAndUpdate(req.body.requestId, {
       requestStatus: "accepted",
     });
     if (!result) {
       return res.status(500).send({ message: "Something bad happened" });
     }
-    return res.status(200).send({ message: "Accepted Successfully" });
+    console.log(result);
+    const createNewHost = new hostdb({
+      firstName: result.firstName,
+      lastName: result.lastName,
+      dob: result.dob,
+      city: result.city,
+      aboutMe: result.aboutMe,
+      phone: result.phone,
+    });
+    createNewHost
+      .save()
+      .then(() => {
+        return res.status(200).send({ message: "Accepted Successfully" });
+      })
+      .catch((e) => {
+        return res.status(500).send({ message: e });
+      });
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //======================================= reject host requests ============================================//
@@ -150,7 +167,7 @@ exports.rejectHostRequest = async (req, res) => {
         .status(400)
         .send({ message: validator.error.details[0].message });
     }
-    const result = await hostdb.findByIdAndUpdate(req.body.requestId, {
+    const result = await hostFormdb.findByIdAndUpdate(req.body.requestId, {
       requestStatus: "rejected",
     });
     if (!result) {
