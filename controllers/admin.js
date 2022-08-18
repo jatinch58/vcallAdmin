@@ -131,7 +131,6 @@ exports.acceptHostRequest = async (req, res) => {
     if (!result) {
       return res.status(500).send({ message: "Something bad happened" });
     }
-    console.log(result);
     const createNewHost = new hostdb({
       firstName: result.firstName,
       lastName: result.lastName,
